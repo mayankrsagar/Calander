@@ -12,6 +12,7 @@ import {
   addEvent,
   deleteEvent,
   Event,
+  updateEvent,
 } from '@/features/eventSlice';
 import {
   AppDispatch,
@@ -34,7 +35,8 @@ const existing=useSelector((state: RootState)=>{
 
 const [title,setTitle]=useState("");
 const [desc,setDesc]=useState("");
-
+const [edit,setEdit]=useState<boolean>(false);
+const [eventToEdit,setEventToEdit]=useState<Event| null>(null);
 const handleSave = (): void => {
   if (!title || !selectedDate) return;
 
@@ -49,7 +51,33 @@ const handleSave = (): void => {
   onClose();
 };
 
+ const handleEdit = (ev: Event) => {
+    setTitle(ev.title);
+    setDesc(ev.description || '');
+    setEdit(true);
+    setEventToEdit(ev);
+  };
 
+const resetForm = () => {
+    setTitle('');
+    setDesc('');
+    setEdit(false);
+    setEventToEdit(null);
+  };
+
+  const handleUpdate = () => {
+    if (!eventToEdit || !selectedDate) return;
+
+    const updated: Event = {
+      ...eventToEdit,
+      title,
+      description: desc,
+    };
+
+    dispatch(updateEvent(updated));
+    resetForm();
+    onClose();
+  };
 
   //   return (
   //    <Dialog open={!!selectedDate} onClose={onClose} className="fixed inset-0 z-50 flex items-center justify-center">
@@ -101,6 +129,7 @@ const handleSave = (): void => {
               >
                 Delete
               </button>
+              <button onClick={()=>handleEdit(ev)}>Edit</button>
             </li>
           ))}
         </ul>
@@ -122,10 +151,10 @@ const handleSave = (): void => {
         <div className="flex justify-end space-x-2">
           <button onClick={onClose} className="px-4 py-2">Cancel</button>
           <button
-            onClick={handleSave}
+            onClick={edit ?handleUpdate :handleSave}
             className="px-4 py-2 bg-blue-600 text-white rounded"
           >
-            Save
+            { edit? "Update":"Save"}
           </button>
         </div>
       </div>
